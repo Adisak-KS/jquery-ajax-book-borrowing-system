@@ -604,7 +604,7 @@ class BookController
     function getBooks($limit, $offset, $btId = NULL)
     {
         try {
-
+            // คำสั่ง SQL เริ่มต้น
             $sql = "SELECT lib_books.bk_id, 
                             lib_books.bk_name, 
                             lib_books.bk_img,
@@ -613,23 +613,32 @@ class BookController
                     LEFT JOIN lib_books_types ON lib_books.bt_id = lib_books_types.bt_id
                     WHERE lib_books.bk_show = 1";
 
+            // ถ้ามีค่า $btId ให้เพิ่มคำสั่ง WHERE สำหรับประเภทหนังสือ
+            if (!empty($btId)) {
+                // สร้าง placeholder สำหรับค่าใน array ของ $btId
+                $placeholders = implode(',', array_fill(0, count($btId), '?'));
+                $sql .= " AND lib_books.bt_id IN ($placeholders)";
+            }
 
             // จัดลำดับข้อมูลและกำหนด LIMIT และ OFFSET
-            $sql .= " ORDER BY lib_books.bk_id DESC LIMIT :limit OFFSET :offset";
+            $sql .= " ORDER BY lib_books.bk_id DESC LIMIT ? OFFSET ?";
 
+            // เตรียม statement
             $stmt = $this->conn->prepare($sql);
 
-            // ผูกค่าต่างๆ
+            // ผูกค่า limit และ offset
+            $stmt->bindValue(count($btId) + 1, $limit, PDO::PARAM_INT);
+            $stmt->bindValue(count($btId) + 2, $offset, PDO::PARAM_INT);
+
+            // ถ้ามีค่า $btId ให้ผูกค่าใน array ลงใน query
             if (!empty($btId)) {
                 foreach ($btId as $index => $id) {
+                    // ใช้ bindValue สำหรับค่าของประเภทหนังสือใน array $btId
                     $stmt->bindValue($index + 1, $id, PDO::PARAM_INT);
                 }
             }
 
-            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
-
-            // Execute
+            // Execute statement
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $result;
@@ -639,42 +648,29 @@ class BookController
         }
     }
 
-
-
-
-    // function getBooks($limit, $offset)
-    // {
-    //     try {
-    //         $sql = "SELECT lib_books.bk_id, 
-    //                     lib_books.bk_name, 
-    //                     lib_books.bk_img,
-    //                     lib_books_types.bt_name
-    //                 FROM lib_books
-    //                 LEFT JOIN lib_books_types ON lib_books.bt_id = lib_books_types.bt_id
-    //                 WHERE lib_books.bk_show = 1
-    //                 ORDER BY lib_books.bk_id DESC
-    //                 LIMIT :limit OFFSET :offset";
-    //         $stmt = $this->conn->prepare($sql);
-
-    //         // กำหนดค่าของ :limit และ :offset
-    //         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    //         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
-    //         $stmt->execute();
-    //         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //         return $result;
-    //     } catch (PDOException $e) {
-    //         echo "Error: " . $e->getMessage() . "<hr>";
-    //         return false;
-    //     }
-    // }
-
-
-    function countBooks()
+    // ฟังก์ชันสำหรับการนับจำนวนหนังสือ
+    function countBooks($btId = NULL)
     {
         try {
+           
             $sql = "SELECT COUNT(*) AS total FROM lib_books WHERE bk_show = 1";
+
+            // ถ้ามีค่า $btId ให้เพิ่ม WHERE ตามประเภทหนังสือ
+            if (!empty($btId)) {
+                // สร้าง placeholder สำหรับค่าของ $btId
+                $placeholders = implode(',', array_fill(0, count($btId), '?'));
+                $sql .= " AND bt_id IN ($placeholders)";
+            }
+
             $stmt = $this->conn->prepare($sql);
+
+            // ผูกค่าใน array $btId (ถ้ามี)
+            if (!empty($btId)) {
+                foreach ($btId as $index => $id) {
+                    $stmt->bindValue($index + 1, $id, PDO::PARAM_INT);
+                }
+            }
+
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result['total'];
@@ -684,43 +680,5 @@ class BookController
         }
     }
 
-
-    // function getBooks($limit, $offset)
-    // {
-    //     try {
-    //         $sql = "SELECT lib_books.bk_id, 
-    //                     lib_books.bk_name, 
-    //                     lib_books.bk_img,
-    //                     lib_books_types.bt_name
-    //             FROM lib_books
-    //             LEFT JOIN lib_books_types ON lib_books.bt_id = lib_books_types.bt_id
-    //             WHERE lib_books.bk_show = 1
-    //             ORDER BY lib_books.bk_id DESC
-    //             LIMIT :limit OFFSET :offset";
-    //         $stmt = $this->conn->prepare($sql);
-    //         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-    //         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
-    //         $stmt->execute();
-    //         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //         return $result;
-    //     } catch (PDOException $e) {
-    //         echo "Error: " . $e->getMessage() . "<hr>";
-    //         return false;
-    //     }
-    // }
-
-    // ฟังก์ชันสำหรับนับจำนวนหนังสือทั้งหมด
-    // function countBooks()
-    // {
-    //     try {
-    //         $sql = "SELECT COUNT(*) AS total FROM lib_books WHERE bk_show = 1";
-    //         $stmt = $this->conn->prepare($sql);
-    //         $stmt->execute();
-    //         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    //         return $result['total'];
-    //     } catch (PDOException $e) {
-    //         echo "Error: " . $e->getMessage() . "<hr>";
-    //         return 0;
-    //     }
-    // }
+    
 }

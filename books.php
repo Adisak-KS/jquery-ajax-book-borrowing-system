@@ -151,18 +151,19 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
             <script>
                 $(document).ready(function() {
                     function loadBookAll(page = 1, limit = 9) {
-                        let selectedBookTypes = [];
+                        let btId = [];
                         $('input[name="bt_id[]"]:checked').each(function() {
-                            selectedBookTypes.push($(this).val());
+                            btId.push($(this).val());
                         });
 
+                        console.log(btId); // ตรวจสอบค่า btId ที่จะส่งไป
                         $.ajax({
                             url: 'ajax/fetch_book_all.php',
                             method: 'GET',
                             data: {
                                 page: page,
                                 limit: limit,
-                                book_type: selectedBookTypes
+                                bt_id: btId
                             },
                             dataType: 'json',
                             success: function(response) {
@@ -237,114 +238,11 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                         loadBookAll(1, limit);
                     });
 
-                    $(document).on('change', 'input[name="book_type[]"]', function() {
+                    $(document).on('change', 'input[name="bt_id[]"]', function() {
                         loadBookAll(1);
                     });
                 });
             </script>
-
-
-
-
-            <!-- <script>
-                $(document).ready(function() {
-                    function loadBookAll(page = 1, limit = 9) {
-                        // เก็บค่า book_type จาก checkbox ที่ถูกเลือก
-                        let selectedBookTypes = [];
-                        $('input[name="book_type[]"]:checked').each(function() {
-                            selectedBookTypes.push($(this).val());
-                        });
-
-                        $.ajax({
-                            url: 'ajax/fetch_book_all.php',
-                            method: 'GET',
-                            data: {
-                                page: page,
-                                limit: limit,
-                                book_type: selectedBookTypes // ส่งประเภทหนังสือที่ถูกเลือก
-                            },
-                            dataType: 'json',
-                            success: function(response) {
-                                let bookContainer = '';
-                                $.each(response.books, function(index, book) {
-                                    let bookImage = book.bk_img ? book.bk_img : 'default.png';
-                                    let bookType = book.bt_name ? book.bt_name : 'ไม่พบประเภทหนังสือ';
-
-                                    function truncateText(text, maxLength) {
-                                        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-                                    }
-
-                                    let truncatedBookName = truncateText(book.bk_name, 30);
-                                    let truncatedBookType = truncateText(bookType, 40);
-
-                                    bookContainer += `
-                        <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
-                            <div class="product-item bg-light mb-4">
-                                <div class="product-img position-relative overflow-hidden">
-                                    <img class="img-fluid w-100" style="height: 400px"  src="uploads/img_book/${bookImage}" alt="${book.bk_name}">
-                                    <div class="product-action">
-                                        <a class="btn btn-outline-dark btn-square" href="book_detail.php?id=${book.bk_id}">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="text-center py-4">
-                                    <p class="small">${truncatedBookType}</p>
-                                    <a class="h6 text-decoration-none text-truncate" href="book_detail.php?id=${book.bk_id}">${truncatedBookName}</a>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                                });
-
-                                $('#book-container').html(bookContainer);
-
-                                // สร้าง pagination
-                                let totalPages = Math.ceil(response.totalBooks / response.limit);
-                                let paginationHTML = '';
-
-                                paginationHTML += `<li class="page-item ${response.page === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${response.page - 1}">Previous</a>
-                  </li>`;
-
-                                for (let i = 1; i <= totalPages; i++) {
-                                    paginationHTML += `<li class="page-item ${i === response.page ? 'active' : ''}">
-                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                      </li>`;
-                                }
-
-                                paginationHTML += `<li class="page-item ${response.page === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${response.page + 1}">Next</a>
-                   </li>`;
-
-                                $('.pagination').html(paginationHTML);
-                            }
-                        });
-                    }
-
-                    loadBookAll();
-
-                    // จัดการเมื่อคลิก pagination
-                    $(document).on('click', '.pagination a', function(e) {
-                        e.preventDefault();
-                        let page = $(this).data('page');
-                        if (page) {
-                            loadBookAll(page);
-                        }
-                    });
-
-                    // จัดการเมื่อเลือกจำนวนการแสดง
-                    $(document).on('click', '.dropdown-item', function(e) {
-                        let limit = parseInt($(this).text());
-                        loadBookAll(1, limit); // โหลดหน้าที่ 1 ใหม่ เมื่อเปลี่ยนจำนวนการแสดงผล
-                    });
-
-                    // เมื่อมีการคลิก checkbox จะโหลดข้อมูลใหม่
-                    $(document).on('change', 'input[name="book_type[]"]', function() {
-                        loadBookAll(1); // โหลดหน้าที่ 1 ใหม่เมื่อประเภทถูกเปลี่ยน
-                    });
-                });
-            </script> -->
 </body>
 
 </html>
