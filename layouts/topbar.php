@@ -39,16 +39,17 @@
                 </a>
             </div>
             <div class="col-lg-4 col-6 text-left">
-                <form action="">
+                <form id="searchForm" action="books.php" method="GET">
                     <div class="input-group">
-                        <input type="text" class="form-control" placeholder="ค้นหาหนังสือ">
+                        <input type="text" class="form-control" placeholder="ค้นหาหนังสือ" name="search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
                         <div class="input-group-append">
-                            <span class="input-group-text bg-transparent text-primary">
+                            <button type="submit" class="input-group-text bg-transparent text-primary">
                                 <i class="fa fa-search"></i>
-                            </span>
+                            </button>
                         </div>
                     </div>
                 </form>
+
             </div>
             <div class="col-lg-4 col-6 text-right">
                 <p class="m-0">ติดต่อเรา</p>

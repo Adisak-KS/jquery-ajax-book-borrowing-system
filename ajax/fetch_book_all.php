@@ -11,11 +11,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 9;
     $offset = ($page - 1) * $limit;
 
-    $btId = isset($_GET['bt_id']) ? $_GET['bt_id'] : [];
-    $books = $BookController->getBooks($limit, $offset, $btId);
+    // รับค่า search จาก URL
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
 
-    // ดึงจำนวนหนังสือทั้งหมด
-    $totalBooks = $BookController->countBooks($btId);
+    // รับค่า bt_id (ประเภทหนังสือ)
+    $btId = isset($_GET['bt_id']) ? $_GET['bt_id'] : [];
+
+    // เรียกใช้ฟังก์ชัน getBooks โดยส่งค่าที่ค้นหาไปด้วย
+    $books = $BookController->getBooks($limit, $offset, $btId, $search);
+
+    // ดึงจำนวนหนังสือทั้งหมดโดยกรองจากค่า search
+    $totalBooks = $BookController->countBooks($btId, $search);
 
     // ส่งข้อมูลกลับไปในรูปแบบ JSON
     echo json_encode([
