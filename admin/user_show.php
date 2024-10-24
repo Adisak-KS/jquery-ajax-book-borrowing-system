@@ -447,12 +447,8 @@ $admSuperAdmin = 1
             $('#edit_usr_type').val(usrType);
             $('#usr_old_profile').val(usrOldProfile);
 
-            // ตั้งค่ารูปภาพ หากไม่มี ให้แสดง default.png
-            if (usrOldProfile) {
-                $('#preview_usr_old_img').attr('src', '../uploads/img_user/' + usrOldProfile);
-            } else {
-                $('#preview_usr_old_img').attr('src', '../uploads/img_user/default.png');
-            }
+           
+           
         });
 
         // ใช้ jQuery Validation

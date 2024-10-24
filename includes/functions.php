@@ -109,12 +109,13 @@ function validateFormUser($usrFname, $usrLname, $usrUsername, $password = NULL, 
     }
 }
 
-function validateFormBook($bkName, $bkQuantity, $bkStudentLoanPeriod, $bkTeacherLoanPeriod, $bkDetail, $bkPublisher, $bkAuthor, $btId, $bkShow){
+function validateFormBook($bkName, $bkQuantity, $bkStudentLoanPeriod, $bkTeacherLoanPeriod, $bkDetail, $bkPublisher, $bkAuthor, $btId, $bkShow)
+{
 
     if (empty($bkName)) {
         echo json_encode(['success' => false, 'message' => 'กรุณากรอกชื่อหนังสือ']);
         exit;
-    } elseif (mb_strlen($bkName, 'UTF-8') > 100) {  
+    } elseif (mb_strlen($bkName, 'UTF-8') > 100) {
         echo json_encode(['success' => false, 'message' => 'ชื่อหนังสือ ต้องไม่เกิน 100 ตัวอักษร']);
         exit;
     }
@@ -175,12 +176,13 @@ function validateFormBook($bkName, $bkQuantity, $bkStudentLoanPeriod, $bkTeacher
     }
 }
 
-function validateFormAccountPassword($oldPassword, $newPassword, $confirmPassword){
+function validateFormAccountPassword($oldPassword, $newPassword, $confirmPassword)
+{
 
     if (empty($oldPassword)) {
         echo json_encode(['success' => false, 'message' => 'กรุณากรอกรหัสผ่านเก่า']);
         exit;
-    }elseif(mb_strlen($oldPassword, 'UTF-8') < 8){
+    } elseif (mb_strlen($oldPassword, 'UTF-8') < 8) {
         echo json_encode(['success' => false, 'message' => 'รหัสผ่านเก่าต้องมากกว่า 8 ตัวอักษร']);
         exit;
     }
@@ -188,10 +190,10 @@ function validateFormAccountPassword($oldPassword, $newPassword, $confirmPasswor
     if (empty($newPassword)) {
         echo json_encode(['success' => false, 'message' => 'กรุณากรอกรหัสผ่านใหม่']);
         exit;
-    }elseif(mb_strlen($newPassword, 'UTF-8') < 8){
+    } elseif (mb_strlen($newPassword, 'UTF-8') < 8) {
         echo json_encode(['success' => false, 'message' => 'รหัสผ่านใหม่ต้องมากกว่า 8 ตัวอักษร']);
         exit;
-    }elseif($newPassword == $oldPassword){
+    } elseif ($newPassword == $oldPassword) {
         echo json_encode(['success' => false, 'message' => 'รหัสผ่านใหม่ต้องไม่เหมือนกับรหัสผ่านเก่า']);
         exit;
     }
@@ -199,8 +201,17 @@ function validateFormAccountPassword($oldPassword, $newPassword, $confirmPasswor
     if (empty($confirmPassword)) {
         echo json_encode(['success' => false, 'message' => 'กรุณา ยืนยันรหัสผ่านใหม่']);
         exit;
-    }elseif($newPassword != $confirmPassword){
+    } elseif ($newPassword != $confirmPassword) {
         echo json_encode(['success' => false, 'message' => 'ยืนยันรหัสผ่านใหม่ไม่ถูกต้อง']);
+        exit;
+    }
+}
+
+function validateFormInsertBorrow($bkId)
+{
+
+    if (empty($bkId)) {
+        echo json_encode(['success' => false, 'message' => 'กรุณาเลือกหนังสือ']);
         exit;
     }
 }

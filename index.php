@@ -1,6 +1,7 @@
 <?php
 $namePage = "หน้าหลัก";
 $nameWebsite = "ยืม-คืนหนังสือห้องสมุด";
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +90,7 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
     <!-- Products Start -->
     <div class="container-fluid pt-5 pb-3">
         <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">หนังสือมาใหม่</span></h2>
-        <div id="product-container" class="row px-xl-5">
+        <div id="book-container" class="row px-xl-5">
 
             <!-- ผลลัพธ์หนังสือใหม่จะถูกแสดงที่นี่ -->
         </div>
@@ -113,7 +114,7 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                     dataType: 'json',
                     success: function(response) {
                         console.log(response);
-                        let productContainer = '';
+                        let newBookContainer = '';
                         $.each(response, function(index, book) {
 
                             let bookImage = book.bk_img ? book.bk_img : 'default.png';
@@ -132,7 +133,7 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                             let truncatedBookName = truncateText(book.bk_name, 30);
                             let truncatedBookType = truncateText(bookType, 40);
 
-                            productContainer += `
+                            newBookContainer += `
                                 <div  class="col-lg-3 col-md-4 col-sm-6 pb-1">
                                     <div class="product-item bg-light mb-4">
                                         <div class="product-img position-relative overflow-hidden">
@@ -152,7 +153,7 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                             `;
                         });
 
-                        $('#product-container').html(productContainer);
+                        $('#book-container').html(newBookContainer);
                     }
                 })
             }
