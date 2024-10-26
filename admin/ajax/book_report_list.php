@@ -1,0 +1,34 @@
+<?php
+require_once '../../db/connect.php';
+require_once '../../controller/BookController.php';
+
+$BookController = new BookController($conn);
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $start = $_POST['start'] ?? 0;
+    $length = $_POST['length'] ?? 10;
+    $search = $_POST['search']['value'] ?? '';
+
+    // รับคอลัมน์ที่ใช้จัดเรียงและทิศทางการจัดเรียงจาก DataTable
+    $orderColumn = $_POST['order'][0]['column'] ?? 0;
+    $orderDir = $_POST['order'][0]['dir'] ?? 'asc';
+
+    // รับค่าของ time_start และ time_end จากการส่งข้อมูลผ่าน AJAX
+    $timeStart = $_POST['time_start'] ?? null;
+    $timeEnd = $_POST['time_end'] ?? null;
+
+    // ส่งค่าทั้งหมดไปยังฟังก์ชัน getBookReturnList
+    $data = $BookController->getBookReturnList($start, $length, $search, $orderColumn, $orderDir, $timeStart, $timeEnd);
+
+    // ส่งข้อมูล JSON แบบ Debug
+    $response = [
+        "draw" => intval($_POST['draw']),
+        "recordsTotal" => $data['total'],
+        "recordsFiltered" => $data['totalFiltered'],
+        "data" => $data['data']
+    ];
+    
+    echo json_encode($response);
+    exit;
+}

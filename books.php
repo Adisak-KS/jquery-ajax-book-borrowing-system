@@ -79,7 +79,7 @@ session_start();
                                     <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
                                         <div class="product-item bg-light mb-4">
                                             <div class="product-img position-relative overflow-hidden">
-                                                <img class="img-fluid w-100" src="img/product-1.jpg" alt="">
+                                                <img class="img-fluid w-100" alt="">
                                                 <div class="product-action">
                                                     <a class="btn btn-outline-dark btn-square" href="">
                                                         <i class="fa-solid fa-eye"></i>
@@ -87,8 +87,8 @@ session_start();
                                                 </div>
                                             </div>
                                             <div class="text-center py-4">
-                                                <p class="small">xdff</p>
-                                                <a class="h6 text-decoration-none text-truncate" href="book_detail.php?id=">ชื่อหนังสือ</a>
+                                                <p class="small"></p>
+                                                <a class="h6 text-decoration-none text-truncate" href="book_detail.php?id="></a>
                                             </div>
                                         </div>
                                     </div>

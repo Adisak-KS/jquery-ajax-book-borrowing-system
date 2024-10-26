@@ -33,7 +33,7 @@ require_once '../controller/AdminController.php';
                     ข้อมูลส่วนตัว
                 </a>
                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editAccountPasswordModal">
-                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                    <i class="fa-solid fa-key fa-sm fa-fw mr-2 text-gray-400"></i>
                     รหัสผ่าน
                 </a>
                 <div class="dropdown-divider"></div>

@@ -286,6 +286,13 @@ require_once '../db/connect.php';
                     {
                         data: 'bk_name',
                         className: 'text-left',
+                        render: function(data, type, row) {
+                            
+                            if (data.length > 35) {
+                                return data.substring(0, 35) + '...';
+                            }
+                            return data; 
+                        }
                     },
                     {
                         data: 'bk_quantity',

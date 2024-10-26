@@ -54,10 +54,10 @@ $AdminController->insertSuperAdminDefault();
                                                 <div class="h6 mb-0 font-weight-bold text-primary mb-2">
                                                     รายการยืมหนังสือ
                                                 </div>
-                                                <div class="h6 mb-0 font-weight-bold text-gray-800">60 รายการ</div>
+                                                <div class="h6 mb-0 font-weight-bold text-gray-800" id="BookBorrowCount"></div>
                                             </div>
                                             <div class="col-auto">
-                                                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                                <i class="fa-solid fa-book fa-2x text-gray-300"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -75,10 +75,10 @@ $AdminController->insertSuperAdminDefault();
                                                 <div class="h6 mb-0 font-weight-bold text-success mb-2">
                                                     รายงาน
                                                 </div>
-                                                <div class="h6 mb-0 font-weight-bold text-gray-800">60 รายการ</div>
+                                                <div class="h6 mb-0 font-weight-bold text-gray-800" id="BookReturnCount"></div>
                                             </div>
                                             <div class="col-auto">
-                                                <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                                <i class="fa-solid fa-clipboard fa-2x text-gray-300"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -97,13 +97,12 @@ $AdminController->insertSuperAdminDefault();
                                 <!-- Card Header - Dropdown -->
                                 <div
                                     class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">สถิติการยืมหนังสือ</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">สถิติการยืมหนังสือ 12 เดือน ล่าสุด</h6>
                                 </div>
                                 <!-- Card Body -->
-                                <div class="card-body">
-                                    <div class="chart-area">
-                                        <canvas id="myAreaChart"></canvas>
-                                    </div>
+                                <div class="card-body" style="height: 400px;">
+
+                                    <canvas id="chartBookBorrowYear"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -114,38 +113,11 @@ $AdminController->insertSuperAdminDefault();
                                 <!-- Card Header - Dropdown -->
                                 <div
                                     class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
-                                    <div class="dropdown no-arrow">
-                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                            aria-labelledby="dropdownMenuLink">
-                                            <div class="dropdown-header">Dropdown Header:</div>
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Something else here</a>
-                                        </div>
-                                    </div>
+                                    <h6 class="m-0 font-weight-bold text-primary">หนังสือที่นิยม 5 อันดับ ในเดือนนี้</h6>
                                 </div>
                                 <!-- Card Body -->
                                 <div class="card-body">
-                                    <div class="chart-pie pt-4 pb-2">
-                                        <canvas id="myPieChart"></canvas>
-                                    </div>
-                                    <div class="mt-4 text-center small">
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-primary"></i> Direct
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-success"></i> Social
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-info"></i> Referral
-                                        </span>
-                                    </div>
+                                    <canvas id="chartBookBorrowTopFive"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -173,6 +145,116 @@ $AdminController->insertSuperAdminDefault();
 
     <?php require_once('layouts/vendor.php'); ?>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // ฟังก์ชันเพื่อดึงข้อมูลจำนวนหนังสือที่ถูกยืม
+            function fetchBookCounts() {
+                $.ajax({
+                    url: 'ajax/book_count.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        $('#BookBorrowCount').text(response.borrowCount.toLocaleString() + ' รายการ');
+                        $('#BookReturnCount').text(response.returnCount.toLocaleString() + ' รายการ');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error);
+                    }
+                });
+            }
+
+            // เรียกใช้ฟังก์ชันเมื่อเอกสารโหลดเสร็จ
+            fetchBookCounts();
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // ฟังก์ชันเพื่อโหลดข้อมูลด้วย AJAX
+            function loadChartBookBorrowYear() {
+                $.ajax({
+                    url: 'ajax/book_borrow_year.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        const labels = response.labels;
+                        const data = response.data;
+
+                        // สร้างกราฟ
+                        const ctx = document.getElementById('chartBookBorrowYear').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'รายการ',
+                                    data: data,
+                                    borderWidth: 1,
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                        });
+                    },
+                    error: function() {
+                        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                    }
+                });
+            }
+
+            loadChartBookBorrowYear(); // เรียกฟังก์ชันเพื่อโหลดข้อมูลครั้งแรก
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // ฟังก์ชันเพื่อโหลดข้อมูลด้วย AJAX
+            function loadChartBookBorrowTopFive() {
+                $.ajax({
+                    url: 'ajax/book_borrow_top.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        const labels = response.labels;
+                        const data = response.data;
+
+                        // สร้างกราฟ
+                        const ctx2 = document.getElementById('chartBookBorrowTopFive');
+                        new Chart(ctx2, {
+                            type: 'pie',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'รายการ',
+                                    data: data,
+                                    borderWidth: 1,
+                                }]
+                            },
+                            options: {
+                                plugins: {
+                                    legend: {
+                                        display: false // ซ่อน legend
+                                    }
+                                }
+                            }
+                        });
+                    },
+                    error: function() {
+                        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                    }
+                });
+            }
+
+            loadChartBookBorrowTopFive(); // เรียกฟังก์ชันเพื่อโหลดข้อมูลครั้งแรก
+        });
+    </script>
 </body>
 
 </html>

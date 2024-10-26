@@ -46,7 +46,14 @@ class BookController
             }
 
             // เพิ่มเงื่อนไขการจัดเรียง
-            $columns = ['lib_books.bk_name', 'lib_books.bk_quantity', 'lib_books_types.bt_name', 'lib_books.bk_show', 'lib_books.bk_show']; // รายการจัดเรียงได้
+            $columns = [
+                'lib_books.bk_img',
+                'lib_books.bk_name',
+                'lib_books.bk_quantity',
+                'lib_books_types.bt_name',
+                'lib_books.bk_show',
+                'lib_books.bk_show'
+            ];
 
             if (isset($columns[$orderColumn])) {
                 $sql .= " ORDER BY " . $columns[$orderColumn] . " " . strtoupper($orderDir);
@@ -690,6 +697,206 @@ class BookController
             return true;
         } catch (PDOException $e) {
             $this->conn->rollBack();
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+
+    function getBookReturnList($start, $length, $search, $orderColumn, $orderDir, $timeStart = null, $timeEnd = null)
+    {
+        try {
+            // เริ่มสร้าง SQL Query
+            $sql = "SELECT lib_books_borrow.br_id,  
+                    lib_books_borrow.br_return_date,
+                    lib_books_borrow.br_amount,
+                    lib_books.bk_name,
+                    lib_users.usr_fname,
+                    lib_users.usr_lname
+            FROM lib_books_borrow
+            INNER JOIN lib_users ON lib_users.usr_id = lib_books_borrow.usr_id
+            LEFT JOIN lib_books ON lib_books.bk_id = lib_books_borrow.bk_id
+            WHERE lib_books_borrow.br_status = 'Return'";
+
+            // ตรวจสอบว่ามีการกรองตามวันที่หรือไม่
+            if (!empty($timeStart) && !empty($timeEnd)) {
+                $sql .= " AND lib_books_borrow.br_return_date BETWEEN :timeStart AND :timeEnd";
+            }
+
+            // ตรวจสอบว่ามีการค้นหาหรือไม่
+            if (!empty($search)) {
+                $sql .= " AND (lib_books_borrow.br_return_date LIKE :search
+                    OR lib_users.usr_fname LIKE :search 
+                    OR lib_users.usr_lname LIKE :search
+                    OR lib_books.bk_name LIKE :search 
+                    OR lib_books_borrow.br_amount LIKE :search)";
+            }
+
+            // เพิ่มเงื่อนไขการจัดเรียง
+            $columns = ['lib_books_borrow.br_return_date', 'lib_users.usr_fname', 'lib_users.usr_lname', 'lib_books.bk_name', 'lib_books_borrow.br_amount'];
+            if (isset($columns[$orderColumn])) {
+                $sql .= " ORDER BY " . $columns[$orderColumn] . " " . strtoupper($orderDir);
+            }
+
+            // เพิ่มเงื่อนไข limit
+            $sql .= " LIMIT :start, :length";
+
+            // เตรียม query
+            $stmt = $this->conn->prepare($sql);
+
+            // ถ้ามีการกรองวันที่ ให้ bind ค่า timeStart และ timeEnd
+            if (!empty($timeStart) && !empty($timeEnd)) {
+                $stmt->bindParam(':timeStart', $timeStart, PDO::PARAM_STR);
+                $stmt->bindParam(':timeEnd', $timeEnd, PDO::PARAM_STR);
+            }
+
+            // ถ้ามีการค้นหา ให้ bind ค่า %search%
+            if (!empty($search)) {
+                $searchParam = "%$search%";
+                $stmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+            }
+
+            $stmt->bindParam(':start', $start, PDO::PARAM_INT);
+            $stmt->bindParam(':length', $length, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // ดึงผลลัพธ์
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // นับจำนวนข้อมูลทั้งหมด
+            $totalSql = "SELECT COUNT(*) as total 
+                     FROM lib_books_borrow 
+                     WHERE lib_books_borrow.br_status = 'Return'";
+            $totalStmt = $this->conn->prepare($totalSql);
+            $totalStmt->execute();
+            $totalCount = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+            // นับจำนวนข้อมูลที่ค้นหาได้
+            $filteredSql = "SELECT COUNT(*) as totalFiltered 
+                        FROM lib_books_borrow
+                        INNER JOIN lib_users ON lib_users.usr_id = lib_books_borrow.usr_id
+                        LEFT JOIN lib_books ON lib_books.bk_id = lib_books_borrow.bk_id
+                        WHERE lib_books_borrow.br_status = 'Return'";
+
+            if (!empty($timeStart) && !empty($timeEnd)) {
+                $filteredSql .= " AND lib_books_borrow.br_return_date BETWEEN :timeStart AND :timeEnd";
+            }
+
+            if (!empty($search)) {
+                $filteredSql .= " AND (lib_books_borrow.br_return_date LIKE :search
+                    OR lib_users.usr_fname LIKE :search 
+                    OR lib_users.usr_lname LIKE :search
+                    OR lib_books.bk_name LIKE :search 
+                    OR lib_books_borrow.br_amount LIKE :search)";
+            }
+
+            $filteredStmt = $this->conn->prepare($filteredSql);
+
+            if (!empty($timeStart) && !empty($timeEnd)) {
+                $filteredStmt->bindParam(':timeStart', $timeStart, PDO::PARAM_STR);
+                $filteredStmt->bindParam(':timeEnd', $timeEnd, PDO::PARAM_STR);
+            }
+
+            if (!empty($search)) {
+                $filteredStmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+            }
+
+            $filteredStmt->execute();
+            $totalFilteredCount = $filteredStmt->fetch(PDO::FETCH_ASSOC)['totalFiltered'];
+
+            return [
+                'data' => $result,
+                'total' => $totalCount,
+                'totalFiltered' => $totalFilteredCount
+            ];
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+
+    function getBookBorrowAndReturnCount()
+    {
+        try {
+            $sql = "SELECT 
+                        SUM(CASE WHEN br_status = 'Borrow' THEN 1 ELSE 0 END) as total_borrow,
+                        SUM(CASE WHEN br_status = 'Return' THEN 1 ELSE 0 END) as total_return 
+                    FROM lib_books_borrow";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return [
+                'borrowCount' => $result['total_borrow'], // ใช้ key ที่ถูกต้อง
+                'returnCount' => $result['total_return']
+            ];
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+
+    function getSumBorrowYear()
+    {
+        try {
+            $sql = "SELECT 
+                        m.month,
+                        CASE m.month
+                            WHEN 1 THEN 'ม.ค.'
+                            WHEN 2 THEN 'ก.พ.'
+                            WHEN 3 THEN 'มี.ค.'
+                            WHEN 4 THEN 'เม.ย.'
+                            WHEN 5 THEN 'พ.ค.'
+                            WHEN 6 THEN 'มิ.ย.'
+                            WHEN 7 THEN 'ก.ค.'
+                            WHEN 8 THEN 'ส.ค.'
+                            WHEN 9 THEN 'ก.ย.'
+                            WHEN 10 THEN 'ต.ค.'
+                            WHEN 11 THEN 'พ.ย.'
+                            WHEN 12 THEN 'ธ.ค.'
+                        END AS month_name,
+                        COUNT(b.br_borrow_date) AS count
+                    FROM 
+                        (SELECT 1 AS month UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 
+                        UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12) AS m
+                    LEFT JOIN  lib_books_borrow b ON m.month = MONTH(b.br_borrow_date)  AND YEAR(b.br_borrow_date) = YEAR(CURDATE())
+                    GROUP BY  m.month
+                    ORDER BY  m.month";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+
+            $monthlyCounts = [];
+
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $monthlyCounts[] = [
+                    'month' => $row['month_name'],
+                    'count' => $row['count'],
+                ];
+            }
+
+            return $monthlyCounts;
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+
+
+    function getBookBorrowTopFive()
+    {
+        try {
+            $sql = "SELECT lib_books.bk_name, 
+                        COUNT(lib_books_borrow.bk_id) AS borrow_count
+                    FROM lib_books_borrow
+                    INNER JOIN lib_books ON lib_books.bk_id = lib_books_borrow.bk_id
+                    WHERE MONTH(lib_books_borrow.br_borrow_date) = MONTH(CURRENT_DATE)
+                    AND YEAR(lib_books_borrow.br_borrow_date) = YEAR(CURRENT_DATE)
+                    GROUP BY lib_books.bk_id, lib_books.bk_name
+                    ORDER BY borrow_count DESC
+                    LIMIT 5";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $e) {
             echo "Error: " . $e->getMessage() . "<hr>";
             return false;
         }

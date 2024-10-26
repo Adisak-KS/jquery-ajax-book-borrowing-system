@@ -135,7 +135,14 @@ class AdminController
             }
 
             // เพิ่มเงื่อนไขการจัดเรียง
-            $columns = ['adm_fname', 'adm_lname', 'adm_staff_id']; // คอลัมน์ที่จัดเรียงได้
+            $columns = [
+                'adm_profile',
+                'adm_staff_id',
+                'adm_fname',
+                'adm_lname',
+                
+            ];
+
             if (isset($columns[$orderColumn])) {
                 $sql .= " ORDER BY " . $columns[$orderColumn] . " " . strtoupper($orderDir);
             }

@@ -23,7 +23,14 @@ class UserController
             }
 
             // เพิ่มเงื่อนไขการจัดเรียง
-            $columns = ['usr_fname', 'usr_lname', 'usr_username', 'usr_type', 'usr_type']; // คอลัมน์ที่จัดเรียงได้
+            $columns = [
+                'usr_profile', 
+                'usr_username', 
+                'usr_fname', 
+                'usr_lname', 
+                'usr_type', 
+            ];
+
             if (isset($columns[$orderColumn])) {
                 $sql .= " ORDER BY " . $columns[$orderColumn] . " " . strtoupper($orderDir);
             }
