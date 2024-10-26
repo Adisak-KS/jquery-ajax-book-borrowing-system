@@ -2,6 +2,7 @@
 $namePage = "หน้าหลัก";
 $nameWebsite = "ยืม-คืนหนังสือห้องสมุด";
 
+session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">

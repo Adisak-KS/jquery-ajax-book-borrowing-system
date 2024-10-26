@@ -3,6 +3,11 @@ $namePage = "เข้าสู่ระบบ";
 $nameWebsite = "ยืม-คืนหนังสือห้องสมุด";
 
 
+if (isset($_SESSION['usr_id'])) {
+    header("Location: index.php");
+    exit;
+}
+
 
 ?>
 <!DOCTYPE html>
@@ -48,14 +53,14 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                             <h3 class="text-center">เข้าสู่ระบบ</h3>
                         </div>
                         <div class="col-4">
-                            <form >
+                            <form id="formLoginUser">
                                 <div class="form-group">
                                     <label class="control-label" for="">ชื่อผู้ใช้งาน</label>
-                                    <input type="text" class="form-control" placeholder="ชื่อผู้ใช้งาน">
+                                    <input type="text" name="usr_username" id="usr_username" class="form-control" placeholder="ชื่อผู้ใช้งาน">
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label" for="">รหัสผ่าน</label>
-                                    <input type="password" class="form-control" placeholder="รหัสผ่าน">
+                                    <input type="password" name="usr_password" id="usr_password" class="form-control" placeholder="รหัสผ่าน">
                                 </div>
                                 <hr>
                                 <div class="form-group"></div>
@@ -74,6 +79,85 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
     <?php require_once('layouts/footer.php'); ?>
 
     <?php require_once('layouts/vendor.php'); ?>
+
+    <script>
+        $(document).ready(function() {
+            // กำหนดการตรวจสอบฟอร์ม
+            $('#formLoginUser').validate({
+                rules: {
+                    usr_username: {
+                        required: true,
+                    },
+                    usr_password: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    usr_username: {
+                        required: "กรุณากรอก ชื่อผู้ใช้งาน",
+                    },
+                    usr_password: {
+                        required: "กรุณากรอก รหัสผ่าน",
+                    },
+                },
+                errorElement: 'p',
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
+                },
+                highlight: function(element) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass('is-invalid');
+                },
+                // ปรับแต่งสีของข้อความ error
+                errorClass: 'text-danger',
+
+                submitHandler: function(form) {
+                    // หยุดการส่งฟอร์มแบบปกติ
+                    event.preventDefault();
+
+                    // ดึงข้อมูลจากฟอร์ม
+                    let formData = {
+                        usr_username: $('#usr_username').val(),
+                        usr_password: $('#usr_password').val()
+                    };
+
+                    console.log(formData);
+
+                    $.ajax({
+                        type: 'POST',
+                        url: 'ajax/login_check.php', // URL ที่จะส่งข้อมูลไปยังเซิร์ฟเวอร์
+                        data: formData,
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                // ถ้าสำเร็จให้ไปยังหน้า index
+                                window.location.href = 'index.php';
+                            } else {
+                                // ถ้าไม่สำเร็จ แสดง SweetAlert2
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'เข้าสู่ระบบไม่สำเร็จ',
+                                    text: response.message
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            // แสดงข้อความผิดพลาดทั่วไป
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'เกิดข้อผิดพลาด',
+                                text: 'โปรดตรวจสอบการเชื่อมต่อและลองอีกครั้ง'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
 
 </body>
 

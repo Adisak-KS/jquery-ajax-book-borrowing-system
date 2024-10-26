@@ -1,6 +1,7 @@
 <?php
 $namePage = "หนังสือทั้งหมด";
 $nameWebsite = "ยืม-คืนหนังสือห้องสมุด";
+session_start();
 
 ?>
 <!DOCTYPE html>
@@ -64,9 +65,9 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                                                 <div class="btn-group ml-2">
                                                     <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">แสดง</button>
                                                     <div class="dropdown-menu dropdown-menu-right">
-                                                        <a class="dropdown-item" href="#">9</a>
-                                                        <a class="dropdown-item" href="#">45</a>
-                                                        <a class="dropdown-item" href="#">108</a>
+                                                        <a class="dropdown-item" href="#" data-limit="9">9</a>
+                                                        <a class="dropdown-item" href="#" data-limit="45">45</a>
+                                                        <a class="dropdown-item" href="#" data-limit="108">108</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -75,7 +76,6 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                                 </div>
 
                                 <div id="book-container" class="row pb-3">
-
                                     <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
                                         <div class="product-item bg-light mb-4">
                                             <div class="product-img position-relative overflow-hidden">
@@ -92,8 +92,6 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                                             </div>
                                         </div>
                                     </div>
-
-
                                 </div>
 
                                 <div class="col-12">
@@ -280,6 +278,14 @@ $nameWebsite = "ยืม-คืนหนังสือห้องสมุด
                     $(document).on('change', 'input[name="bt_id[]"]', function() {
                         let search = $('input[name="search"]').val(); // ดึงค่าจาก input ค้นหา
                         loadBookAll(1, 9, search); // โหลดข้อมูลหนังสือตามประเภทที่เลือก
+                    });
+
+                    // จับการคลิก dropdown สำหรับจำนวน limit
+                    $(document).on('click', '.dropdown-item', function(e) {
+                        e.preventDefault();
+                        let limit = $(this).data('limit');
+                        let search = $('input[name="search"]').val();
+                        loadBookAll(1, limit, search); // ส่งค่า limit ที่เลือกเข้าไปในฟังก์ชัน
                     });
                 });
             </script>

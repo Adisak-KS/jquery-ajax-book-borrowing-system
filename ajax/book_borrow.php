@@ -21,8 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $check = $BookController->checkBookBorrow($usrId, $bkId);
 
     if ($check) {
-        echo json_encode(['success' => false, 'message' => 'หนังสือนี้คุณยืมไปแล้ว และยังไม่คืน']);
+        $insertBookBorrow = $BookController->insertBookBorrow($usrId, $bkId);
+
+        if ($insertBookBorrow) {
+            echo json_encode(['success' => true, 'message' => 'ยืมหนังสือสําเร็จ']);
+            exit;
+        }
     } else {
-        
+        echo json_encode(['success' => false, 'message' => 'หนังสือนี้คุณยืมไปแล้ว และยังไม่คืน']);
+        exit;
     }
 }

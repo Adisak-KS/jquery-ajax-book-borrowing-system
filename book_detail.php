@@ -1,7 +1,7 @@
 <?php
 $namePage = "รายละเอียด";
 $nameWebsite = "ยืม-คืนหนังสือห้องสมุด";
-
+session_start();
 
 
 ?>

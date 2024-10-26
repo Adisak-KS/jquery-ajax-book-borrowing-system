@@ -413,7 +413,13 @@ class BookController
             $stmt->bindParam(':bk_id', $bkId, PDO::PARAM_INT);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['total_borrow'] > 0;
+
+            // ตรวจสอบว่ามีการยืมหนังสือเล่มนี้ไปแล้วหรือไม่
+            if ($result['total_borrow'] > 0) {
+                return false; // มีการยืมแล้ว
+            } else {
+                return true; // ยังไม่ได้ยืม
+            }
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage() . "<hr>";
             return false;
@@ -423,18 +429,267 @@ class BookController
     function insertBookBorrow($usrId, $bkId)
     {
         try {
+            $this->conn->beginTransaction();
+
             $sql = "INSERT INTO lib_books_borrow (usr_id, bk_id)
                     VALUES (:usr_id, :bk_id)";
             $stmt = $this->conn->prepare($sql);
             $stmt->bindParam(':usr_id', $usrId, PDO::PARAM_INT);
             $stmt->bindParam(':bk_id', $bkId, PDO::PARAM_INT);
             $stmt->execute();
-            if ($stmt->rowCount() > 0) {
-                return true;
-            } else {
-                return false;
-            }
+
+            $sql = "UPDATE lib_books 
+                    SET bk_quantity = bk_quantity - 1
+                    WHERE bk_id = :bk_id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':bk_id', $bkId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $this->conn->commit();
+            return true;
         } catch (PDOException $e) {
+            $this->conn->rollBack();
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+
+
+    function getAccountHistoryBorrow($start, $length, $search, $orderColumn, $orderDir, $usrId)
+    {
+        try {
+            // เริ่มสร้าง SQL Query
+            $sql = "SELECT  lib_books_borrow.br_borrow_date,
+                        lib_books_borrow.br_return_date,
+                        lib_books_borrow.br_amount,
+                        lib_books_borrow.br_status,
+                        lib_books.bk_name
+                FROM lib_books_borrow
+                LEFT JOIN lib_books ON lib_books.bk_id = lib_books_borrow.bk_id
+                WHERE lib_books_borrow.usr_id = :usr_id";
+
+            // ตรวจสอบว่ามีการค้นหาหรือไม่
+            if (!empty($search)) {
+                $sql .= " AND (lib_books_borrow.br_borrow_date LIKE :search 
+                        OR lib_books.bk_name LIKE :search 
+                        OR lib_books_borrow.br_amount LIKE :search
+                        OR lib_books_borrow.br_status LIKE :search
+                        OR lib_books_borrow.br_return_date LIKE :search)";
+            }
+
+            // เพิ่มเงื่อนไขการจัดเรียง
+            $columns = ['lib_books_borrow.br_borrow_date', 'lib_books.bk_name', 'lib_books_borrow.br_amount', 'lib_books_borrow.br_status', 'lib_books_borrow.br_return_date',]; // รายการจัดเรียงได้
+
+            if (isset($columns[$orderColumn])) {
+                $sql .= " ORDER BY " . $columns[$orderColumn] . " " . strtoupper($orderDir);
+            }
+
+            // เพิ่มเงื่อนไข limit
+            $sql .= " LIMIT :start, :length";
+
+            // เตรียม query
+            $stmt = $this->conn->prepare($sql);
+
+            // ถ้ามีการค้นหา ให้ bind ค่า %search%
+            if (!empty($search)) {
+                $searchParam = "%$search%";
+                $stmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+            }
+
+            $stmt->bindParam(':usr_id', $usrId, PDO::PARAM_INT);
+            $stmt->bindParam(':start', $start, PDO::PARAM_INT);
+            $stmt->bindParam(':length', $length, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // ดึงผลลัพธ์
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // นับจำนวนข้อมูลทั้งหมด (lib_books_borrow ที่เกี่ยวข้องกับ usr_id)
+            $totalSql = "SELECT COUNT(*) as total FROM lib_books_borrow WHERE usr_id = :usr_id";
+            $totalStmt = $this->conn->prepare($totalSql);
+            $totalStmt->bindParam(':usr_id', $usrId, PDO::PARAM_INT);
+            $totalStmt->execute();
+            $totalCount = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+            // นับจำนวนข้อมูลที่ค้นหาได้
+            $filteredSql = "SELECT COUNT(*) as totalFiltered 
+                        FROM lib_books_borrow
+                        LEFT JOIN lib_books ON lib_books.bk_id = lib_books_borrow.bk_id
+                        WHERE lib_books_borrow.usr_id = :usr_id";
+            if (!empty($search)) {
+                $filteredSql .= " AND (lib_books.bk_name LIKE :search 
+                              OR lib_books_borrow.br_borrow_date LIKE :search
+                              OR lib_books_borrow.br_amount LIKE :search
+                              OR lib_books_borrow.br_status LIKE :search
+                              OR lib_books_borrow.br_return_date LIKE :search)";
+            }
+
+            $filteredStmt = $this->conn->prepare($filteredSql);
+            $filteredStmt->bindParam(':usr_id', $usrId, PDO::PARAM_INT);
+
+            if (!empty($search)) {
+                $filteredStmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+            }
+
+            $filteredStmt->execute();
+            $totalFilteredCount = $filteredStmt->fetch(PDO::FETCH_ASSOC)['totalFiltered'];
+
+            return [
+                'data' => $result,
+                'total' => $totalCount,
+                'totalFiltered' => $totalFilteredCount
+            ];
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+    function getBookBorrowList($start, $length, $search, $orderColumn, $orderDir)
+    {
+        try {
+            // เริ่มสร้าง SQL Query
+            $sql = "SELECT lib_books_borrow.br_id,  
+                        lib_books_borrow.br_borrow_date,
+                        lib_books_borrow.br_amount,
+                        lib_books.bk_id,
+                        lib_books.bk_name,
+                        lib_books.bk_img,
+                        lib_users.usr_fname,
+                        lib_users.usr_lname
+                FROM lib_books_borrow
+                INNER JOIN lib_users ON lib_users.usr_id = lib_books_borrow.usr_id
+                LEFT JOIN lib_books ON lib_books.bk_id = lib_books_borrow.bk_id
+                WHERE lib_books_borrow.br_status = 'Borrow' ";
+
+            // ตรวจสอบว่ามีการค้นหาหรือไม่
+            if (!empty($search)) {
+                $sql .= " AND (lib_books.bk_name LIKE :search 
+                        OR lib_users.usr_fname LIKE :search 
+                        OR lib_users.usr_lname LIKE :search
+                        OR lib_books_borrow.br_borrow_date LIKE :search)";
+            }
+
+            // เพิ่มเงื่อนไขการจัดเรียง
+            $columns = ['lib_books.bk_img', 'lib_books.bk_name', 'lib_users.usr_fname', 'lib_users.usr_lname', 'lib_books_borrow.br_borrow_date']; // รายการจัดเรียงได้
+
+            if (isset($columns[$orderColumn])) {
+                $sql .= " ORDER BY " . $columns[$orderColumn] . " " . strtoupper($orderDir);
+            }
+
+            // เพิ่มเงื่อนไข limit
+            $sql .= " LIMIT :start, :length";
+
+            // เตรียม query
+            $stmt = $this->conn->prepare($sql);
+
+            // ถ้ามีการค้นหา ให้ bind ค่า %search%
+            if (!empty($search)) {
+                $searchParam = "%$search%";
+                $stmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+            }
+
+            $stmt->bindParam(':start', $start, PDO::PARAM_INT);
+            $stmt->bindParam(':length', $length, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // ดึงผลลัพธ์
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // นับจำนวนข้อมูลทั้งหมด (lib_books_borrow ที่เกี่ยวข้องกับ usr_id)
+            $totalSql = "SELECT COUNT(*) as total FROM lib_books_borrow WHERE lib_books_borrow.br_status = 'Borrow'";
+            $totalStmt = $this->conn->prepare($totalSql);
+            $totalStmt->execute();
+            $totalCount = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+            // นับจำนวนข้อมูลที่ค้นหาได้
+            $filteredSql = "SELECT COUNT(*) as totalFiltered 
+                            FROM lib_books_borrow
+                            INNER JOIN lib_users ON lib_users.usr_id = lib_books_borrow.usr_id
+                            LEFT JOIN lib_books ON lib_books.bk_id = lib_books_borrow.bk_id
+                            WHERE lib_books_borrow.br_status = 'Borrow'";
+
+
+            if (!empty($search)) {
+                $filteredSql .= " AND (lib_books.bk_name LIKE :search 
+                        OR lib_users.usr_fname LIKE :search 
+                        OR lib_users.usr_lname LIKE :search
+                        OR lib_books_borrow.br_borrow_date LIKE :search)";
+            }
+
+            $filteredStmt = $this->conn->prepare($filteredSql);
+
+
+            if (!empty($search)) {
+                $filteredStmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+            }
+
+            $filteredStmt->execute();
+            $totalFilteredCount = $filteredStmt->fetch(PDO::FETCH_ASSOC)['totalFiltered'];
+
+            return [
+                'data' => $result,
+                'total' => $totalCount,
+                'totalFiltered' => $totalFilteredCount
+            ];
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+
+    function updateBookBorrowStatusReturn($brId, $bkId)
+    {
+        try {
+
+            $this->conn->beginTransaction();
+
+            $sql = "UPDATE lib_books_borrow 
+                    SET br_status = 'Return',
+                        br_return_date = NOW()
+                    WHERE br_id = :br_id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':br_id', $brId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $sql = "UPDATE lib_books 
+                    SET bk_quantity = bk_quantity + 1
+                    WHERE bk_id = :bk_id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':bk_id', $bkId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $this->conn->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->conn->rollBack();
+            echo "Error: " . $e->getMessage() . "<hr>";
+            return false;
+        }
+    }
+
+    function deleteBookBorrow($brId, $bkId)
+    {
+        try {
+
+            $this->conn->beginTransaction();
+
+            $sql = "DELETE FROM lib_books_borrow 
+                    WHERE br_id = :br_id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':br_id', $brId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $sql = "UPDATE lib_books 
+                    SET bk_quantity = bk_quantity + 1
+                    WHERE bk_id = :bk_id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':bk_id', $bkId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $this->conn->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->conn->rollBack();
             echo "Error: " . $e->getMessage() . "<hr>";
             return false;
         }

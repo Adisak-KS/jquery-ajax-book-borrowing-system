@@ -14,7 +14,7 @@
                       <div class="navbar-nav mr-auto py-0">
                           <a href="index.php" class="nav-item nav-link active">หน้าหลัก</a>
                           <a href="books.php" class="nav-item nav-link">หนังสือทั้งหมด</a>
-                          <a href="shop.html" class="nav-item nav-link">ประวัติการยืมหนังสือ</a>
+                          <a href="history_borrow.php" class="nav-item nav-link">ประวัติการยืมหนังสือ</a>
                       </div>
                   </div>
               </nav>
