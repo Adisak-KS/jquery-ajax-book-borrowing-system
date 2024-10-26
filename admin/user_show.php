@@ -164,17 +164,16 @@ $admSuperAdmin = 1
                                                         <label class="custom-file-label" for="customFile">Choose file</label>
                                                     </div>
                                                 </div>
-
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                        ปิด
-                                                    </button>
-                                                    <button type="submit" class="btn btn-warning">
-                                                        <i class="fa-solid fa-pen-to-square"></i>
-                                                        แก้ไข
-                                                    </button>
-                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                    ปิด
+                                                </button>
+                                                <button type="submit" class="btn btn-warning">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                    แก้ไข
+                                                </button>
                                             </div>
                                         </div>
                                 </form>
@@ -454,7 +453,7 @@ $admSuperAdmin = 1
                 $('#preview_usr_old_img').attr('src', '../uploads/img_user/default.png');
             }
 
-           
+
         });
 
         // ใช้ jQuery Validation

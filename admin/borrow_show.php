@@ -82,17 +82,16 @@ require_once '../db/connect.php';
                                                     <label for="edit_usr_lname" class="form-label">นามสกุล :</label> <span class="text-danger">*</span>
                                                     <input type="text" class="form-control" id="edit_usr_lname" name="edit_usr_lname" placeholder="กรุณาระบุ จำนวน" readonly>
                                                 </div>
-
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                        ปิด
-                                                    </button>
-                                                    <button type="submit" class="btn btn-warning">
-                                                        <i class="fa-solid fa-pen-to-square"></i>
-                                                        ยืนยันการคืนหนังสือ
-                                                    </button>
-                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                    ปิด
+                                                </button>
+                                                <button type="submit" class="btn btn-warning">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                    ยืนยันการคืนหนังสือ
+                                                </button>
                                             </div>
                                         </div>
                                 </form>

@@ -39,7 +39,7 @@ require_once '../db/connect.php';
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
                             <div class="d-flex justify-content-between">
-                                <h6 class="m-0 font-weight-bold text-primary mb-2">ข้อมูลผู้ใช้งาน</h6>
+                                <h6 class="m-0 font-weight-bold text-primary mb-2">ข้อมูลหนังสือ</h6>
                                 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addBookModal">
                                     <i class="fa-solid fa-plus"></i>
                                     เพิ่มหนังสือ
@@ -205,17 +205,16 @@ require_once '../db/connect.php';
                                                         </label>
                                                     </div>
                                                 </div>
-
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                        ปิด
-                                                    </button>
-                                                    <button type="submit" class="btn btn-warning">
-                                                        <i class="fa-solid fa-pen-to-square"></i>
-                                                        แก้ไข
-                                                    </button>
-                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                    ปิด
+                                                </button>
+                                                <button type="submit" class="btn btn-warning">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                    แก้ไข
+                                                </button>
                                             </div>
                                         </div>
                                 </form>
@@ -287,11 +286,11 @@ require_once '../db/connect.php';
                         data: 'bk_name',
                         className: 'text-left',
                         render: function(data, type, row) {
-                            
+
                             if (data.length > 35) {
                                 return data.substring(0, 35) + '...';
                             }
-                            return data; 
+                            return data;
                         }
                     },
                     {
