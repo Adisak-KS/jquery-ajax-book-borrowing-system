@@ -6,7 +6,8 @@
 
 ---
 
-จัดทำขึ้นเพื่อศึกษาการใช้ PHP(PDO) ร่วมกับ JQUERY และ AJAX สามารถดูตัวอย่างได้ที่ 
+จัดทำขึ้นเพื่อศึกษาการใช้ PHP(PDO) ร่วมกับ JQUERY และ AJAX สามารถดูตัวอย่างได้ [ที่นี่](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/tree/main/previews)
+
 
 ---
 
@@ -80,24 +81,24 @@
 Admin
 
 1. หน้าแรก
-   ![index]()
+   ![index](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/blob/main/previews/admin/02_index.png)
 
-2. หน้าจัดหารหนังสือ
-   ![index]()
+2. หน้าจัดการหนังสือ
+   ![index](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/blob/main/previews/admin/15_book_show.png)
 
 3. หน้ารายงาน
-   ![index]()
+   ![index](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/blob/main/previews/admin/22_report.png)
 
 ๊User
 
 1. หน้าแรก
-    ![index]()
+    ![index](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/blob/main/previews/user/01_index.png)
 
 2. หนังสือทั้งหมด
-    ![index]()
+    ![index](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/blob/main/previews/user/02_books.png)
 
 3. หน้าประวัติการยืม
-    ![index]()
+    ![index](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/blob/main/previews/user/04_history_borrow.png)
 
 4. หน้ารายละเอียดหนังสือ
-    ![index]()
+    ![index](https://github.com/Adisak-KS/jquery-ajax-book-borrowing-system/blob/main/previews/user/05_book_detail.png)
